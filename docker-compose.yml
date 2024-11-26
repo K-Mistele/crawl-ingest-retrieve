@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  crawler:
+    image: unclecode/crawl4ai:basic
+    ports:
+      - '11235:11235'
+    shm_size: 2gb
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
