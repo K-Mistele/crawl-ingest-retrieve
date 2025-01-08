@@ -2,14 +2,28 @@ version: '3.8'
 
 services:
   crawler:
-    image: unclecode/crawl4ai:basic
+    image: unclecode/crawl4ai:latest
+    shm_size: 2gb
+    environment:
+      CRAWL4AI_API_TOKEN: ${CRAWLER_API_TOKEN}
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:11235/health']
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
     ports:
       - '11235:11235'
-    shm_size: 2gb
 
   postgres:
     image: pgvector/pgvector:pg17
     ports:
       - '5432:5432'
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
