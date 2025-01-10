@@ -39,9 +39,9 @@ browser_config = BrowserConfig(
 )
 
 content_filter = PruningContentFilter(
-    threshold=0.5,
+    threshold=0.2,
     threshold_type='dynamic',
-    min_word_threshold=10,
+    #min_word_threshold=10,
 )
 
 markdown_generator_config = DefaultMarkdownGenerator(
@@ -56,16 +56,13 @@ markdown_generator_config = DefaultMarkdownGenerator(
 )
 
 crawler_config = CrawlerRunConfig(
+    word_count_threshold=10,
+    only_text=True,
     markdown_generator=markdown_generator_config,
-    content_filter=content_filter,
     exclude_external_links=True,
     exclude_social_media_links=True,
     exclude_external_images=False,  # images may be loaded from CDN
-    verbose=True,
-    word_count_threshold=5,
     excluded_tags=['script', 'style', 'footer', 'nav'],
-    disable_cache=True,  # don't cache to prevent memory leaks
-    bypass_cache=True
 )
 
 
@@ -88,8 +85,6 @@ async def scrape_domain(domain: str, max_concurrent: int = None):
             print(f'Got {len(sitemap_urls)} URLs from sitemap')
             results, new_links = await crawl_urls(domain, sitemap_urls, crawler, max_concurrent=20)
             print('(ignored): new links', new_links)
-            for result in results:
-                print(results[result])
         else:
             print("trying to get regular domain")
     finally:
@@ -124,7 +119,13 @@ async def crawl_urls(domain: str, urls: List[str], crawler: AsyncWebCrawler, max
             # create a batch
             for j, url in enumerate(batch):
                 session_id = f'parallel_session_{i + j}'
-                task = crawler.arun(url=url, config=crawler_config, session_id=session_id)
+                task = crawler.arun(
+                    url=url,
+                    config=crawler_config,
+                    session_id=session_id,
+                    bypass_cache=True,
+                    disable_cache=True,
+                )
                 tasks.append(task)
 
 
